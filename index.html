@@ -10,7 +10,9 @@
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
+  <div id="streakDisplay">
+    <i class="fas fa-fire"></i> Streak: 0 days 🔥
+  </div>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -193,6 +195,17 @@
 .dark-mode #timer-display {
   background: #2c2c2c;
   border-color: #26a69a;
+}
+    #streakDisplay {
+  font-weight: 600;
+  background: #fff4e5;
+  border: 2px solid #ff9800;
+  border-radius: 8px;
+  padding: 1rem;
+}
+.dark-mode #streakDisplay {
+  background: #4a2c00;
+  border-color: #ffa726;
 }
   </style>
 </head>
@@ -412,6 +425,30 @@ document.getElementById("reset-pomodoro")
   .addEventListener("click", resetPomodoro);
 
 displayTime(pomRemaining);
+    function updateStreak() {
+  const habits = ["wakeUp","study1","napLimit","study2","revise","limitGaming"];
+  const todayKey = new Date().toISOString().slice(0,10);
+  // count how many habits passed
+  const passed = habits.filter(id=> document.getElementById(id).checked ).length >= 4;
+  // store today’s pass/fail
+  db.ref(`users/${userId}/streak/${todayKey}`).set(passed);
+  // read back all days, count descending until you hit a false
+  db.ref(`users/${userId}/streak`).once("value").then(snap=>{
+    const entries = Object.entries(snap.val()||{}).sort((a,b)=>b[0].localeCompare(a[0]));
+    let streak=0;
+    for (let [,ok] of entries) {
+      if (!ok) break;
+      streak++;
+    }
+    document.getElementById("streakDisplay").textContent =
+      `🔥 Streak: ${streak} day${streak===1?"":"s"} in a row`;
+  });
+}
+// hook it up
+["wakeUp","study1","napLimit","study2","revise","limitGaming"]
+  .forEach(id=> document.getElementById(id)
+    .addEventListener("change", updateStreak));
+updateStreak();
   </script>
 </body>
 </html>
