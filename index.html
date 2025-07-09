@@ -14,9 +14,11 @@
       margin: 0;
       padding: 20px;
       color: #333;
+      transition: background 0.3s, color 0.3s;
     }
-    h1, h2 {
-      color: #2b2b50;
+    body.dark-mode {
+      background: #121212;
+      color: #f5f5f5;
     }
     .container {
       max-width: 700px;
@@ -25,6 +27,17 @@
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+    body.dark-mode .container {
+      background: #1e1e1e;
+      box-shadow: 0 0 10px rgba(255,255,255,0.05);
+    }
+    h1, h2 {
+      color: #2b2b50;
+    }
+    body.dark-mode h1, body.dark-mode h2 {
+      color: #f5f5f5;
     }
     .section {
       margin-bottom: 30px;
@@ -59,20 +72,41 @@
       font-size: 12px;
       transition: width 0.3s;
     }
+    .day-counter {
+      margin: 10px 0 10px;
+      font-weight: 600;
+      color: #e53935;
+    }
+    .time-counter {
+      font-size: 14px;
+      color: #444;
+      margin-bottom: 15px;
+    }
+    .daily-goal {
+      background: #e3f2fd;
+      border-left: 5px solid #2196F3;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+    }
+    .dark-toggle {
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <button class="dark-toggle" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
     <h1><i class="fas fa-chart-line"></i> My Study & Habit Tracker</h1>
-
     <div class="quote-rotator" id="quote"></div>
-
+    <div class="day-counter" id="dayCounter"></div>
+    <div class="time-counter" id="timeCounter"></div>
+    <div class="daily-goal" id="dailyGoal"></div>
     <div class="section">
       <h2>🎥 Statistics Lectures</h2>
       <div class="progress"><div class="progress-bar" id="progress-bar">0%</div></div>
       <div id="lectures"></div>
     </div>
-
     <div class="section">
       <h2>🗓️ Daily Habits</h2>
       <label><input type="checkbox" id="wakeUp"> Wake Up at 8:00 AM</label>
@@ -83,7 +117,6 @@
       <label><input type="checkbox" id="limitGaming"> No gaming before studying</label>
     </div>
   </div>
-
   <script>
     const quotes = [
       "Success doesn’t come from what you do occasionally. It comes from what you do consistently. — Marie Forleo",
@@ -101,18 +134,42 @@
     setInterval(rotateQuote, 5000);
     rotateQuote();
 
+    const examDate = new Date("2025-07-28T13:30:00");
+
+    function updateCountdown() {
+      const now = new Date();
+      const msRemaining = examDate - now;
+
+      const days = Math.floor(msRemaining / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((msRemaining / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((msRemaining / (1000 * 60)) % 60);
+      const seconds = Math.floor((msRemaining / 1000) % 60);
+
+      document.getElementById("dayCounter").textContent = `📅 Days remaining until exam: ${days}`;
+      document.getElementById("timeCounter").textContent = `⏳ Time remaining: ${hours}h ${minutes}m ${seconds}s`;
+
+      const totalLectures = 105;
+      const totalDays = Math.ceil(msRemaining / (1000 * 60 * 60 * 24));
+      const goalPerDay = Math.ceil(totalLectures / totalDays);
+
+      document.getElementById("dailyGoal").textContent = `🎯 Daily Goal: Watch at least ${goalPerDay} lecture${goalPerDay > 1 ? 's' : ''} today to finish before the exam.`;
+    }
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    const totalLectures = 105;
     const lectureDiv = document.getElementById('lectures');
     function updateProgress() {
       const checkboxes = document.querySelectorAll('#lectures input[type="checkbox"]');
       let checked = 0;
       checkboxes.forEach(cb => { if (cb.checked) checked++; });
-      const percent = Math.floor((checked / 101) * 100);
+      const percent = Math.floor((checked / totalLectures) * 100);
       const bar = document.getElementById("progress-bar");
       bar.style.width = percent + "%";
       bar.textContent = percent + "%";
     }
 
-    for (let i = 1; i <= 105; i++) {
+    for (let i = 1; i <= totalLectures; i++) {
       const id = `lecture${i}`;
       const checked = localStorage.getItem(id) === "true" ? "checked" : "";
       lectureDiv.innerHTML += `<label><input type="checkbox" id="${id}" ${checked}> Lecture ${i}</label>`;
@@ -124,8 +181,31 @@
         updateProgress();
       });
     });
-
     updateProgress();
+
+    // Dark mode toggle and preference store
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+
+    // Notification Reminder
+    function askNotificationPermission() {
+      if ("Notification" in window && Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+    }
+    askNotificationPermission();
+
+    function notifyMe() {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("📌 Time to study! Don't forget your daily goals.");
+      }
+    }
+    setInterval(notifyMe, 60 * 60 * 1000); // every hour
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js')
