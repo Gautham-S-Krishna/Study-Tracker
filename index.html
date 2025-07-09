@@ -160,6 +160,40 @@
     .dark-mode .habits label:hover {
       background: #3a3a3a;
     }
+    /* ---- NEW: Pomodoro Timer CSS ---- */
+#pomodoro {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+#timer-display {
+  font-size: 2rem;
+  font-weight: bold;
+  width: 100px;
+  text-align: center;
+  background: #fff;
+  border: 2px solid #1976d2;
+  border-radius: 8px;
+  padding: 0.25rem;
+}
+#pomodoro button {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#pomodoro button:hover { background: #0f5bb5; }
+/* Dark-mode adjustments */
+.dark-mode #pomodoro button { background: #26a69a; }
+.dark-mode #pomodoro button:hover { background: #1f8a75; }
+.dark-mode #timer-display {
+  background: #2c2c2c;
+  border-color: #26a69a;
+}
   </style>
 </head>
 <body>
@@ -194,6 +228,15 @@
       </div>
     </section>
   </div>
+  <!-- NEW: Pomodoro Timer Section -->
+<section>
+  <h2>⏱️ Pomodoro Timer</h2>
+  <div id="pomodoro">
+    <div id="timer-display">25:00</div>
+    <button id="start-pomodoro">Start</button>
+    <button id="reset-pomodoro">Reset</button>
+  </div>
+</section>
 
   <script>
     // your firebaseConfig unchanged
@@ -330,6 +373,45 @@
       navigator.serviceWorker.register("service-worker.js")
         .catch(console.error);
     }
+    // ---- NEW: Pomodoro Timer Logic ----
+let pomTimer = null;
+let pomRemaining = 25*60;
+let pomRunning = false;
+
+function displayTime(sec){
+  const m = String(Math.floor(sec/60)).padStart(2,'0');
+  const s = String(sec%60).padStart(2,'0');
+  document.getElementById("timer-display").textContent = `${m}:${s}`;
+}
+
+function startPomodoro(){
+  if (pomRunning) return;
+  pomRunning = true;
+  pomTimer = setInterval(()=>{
+    pomRemaining--;
+    if (pomRemaining < 0){
+      clearInterval(pomTimer);
+      pomRunning = false;
+      pomRemaining = 5*60; // switch to break
+      new Notification("Break time! 🚀", { body: "5-minute break started." });
+    }
+    displayTime(pomRemaining);
+  }, 1000);
+}
+
+function resetPomodoro(){
+  clearInterval(pomTimer);
+  pomRunning = false;
+  pomRemaining = 25*60;
+  displayTime(pomRemaining);
+}
+
+document.getElementById("start-pomodoro")
+  .addEventListener("click", startPomodoro);
+document.getElementById("reset-pomodoro")
+  .addEventListener("click", resetPomodoro);
+
+displayTime(pomRemaining);
   </script>
 </body>
 </html>
