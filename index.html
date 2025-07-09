@@ -13,7 +13,37 @@
   <div id="streakDisplay">
     <i class="fas fa-fire"></i> Streak: 0 days 🔥
   </div>
+<select id="themeSelector" style="margin-right:1rem;">
+  <option value="default">Default</option>
+  <option value="sunset">Sunset</option>
+  <option value="forest">Forest</option>
+  <option value="midnight">Midnight</option>
+</select>
   <style>
+    :root {
+  --bg: #f0f4f8;
+  --fg: #222;
+  --accent: #1976d2;
+}
+.theme-sunset {
+  --bg: #ffe5d9; --fg: #5a2e2e; --accent: #ff6f61;
+}
+.theme-forest {
+  --bg: #e8f5e9; --fg: #1b5e20; --accent: #4caf50;
+}
+.theme-midnight {
+  --bg: #121b2a; --fg: #e0e0e0; --accent: #90caf9;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+.dark-toggle,
+#themeSelector {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
     body {
       font-family: 'Poppins', sans-serif;
       background: #f0f4f8;
@@ -449,6 +479,15 @@ displayTime(pomRemaining);
   .forEach(id=> document.getElementById(id)
     .addEventListener("change", updateStreak));
 updateStreak();
+    const selector = document.getElementById("themeSelector");
+function applyTheme(name) {
+  document.body.classList.remove("theme-sunset","theme-forest","theme-midnight");
+  if (name!=="default") document.body.classList.add("theme-"+name);
+  localStorage.setItem("theme", name);
+}
+selector.value = localStorage.getItem("theme")||"default";
+applyTheme(selector.value);
+selector.addEventListener("change", e=> applyTheme(e.target.value));
   </script>
 </body>
 </html>
