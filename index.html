@@ -112,7 +112,7 @@
       bar.textContent = percent + "%";
     }
 
-    for (let i = 1; i <= 101; i++) {
+    for (let i = 1; i <= 105; i++) {
       const id = `lecture${i}`;
       const checked = localStorage.getItem(id) === "true" ? "checked" : "";
       lectureDiv.innerHTML += `<label><input type="checkbox" id="${id}" ${checked}> Lecture ${i}</label>`;
