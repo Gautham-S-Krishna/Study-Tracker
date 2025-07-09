@@ -196,6 +196,7 @@
   </div>
 
   <script>
+    // your firebaseConfig unchanged
     const firebaseConfig = {
       apiKey: "AIzaSyCWD290CgtT1bt0gqEYfW7ZJ7PQw2XRwOs",
       authDomain: "study-tracker-2b525.firebaseapp.com",
@@ -208,10 +209,11 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const userId = localStorage.getItem("anonUser") ||
-                   Math.random().toString(36).substring(2);
+    const userId = localStorage.getItem("anonUser")
+      || Math.random().toString(36).substring(2);
     localStorage.setItem("anonUser", userId);
 
+    // rotating quotes
     const quotes = [
       "Success doesn’t come from what you do occasionally. It comes from what you do consistently. — Marie Forleo",
       "Discipline is the bridge between goals and accomplishment. — Jim Rohn",
@@ -226,12 +228,16 @@
     rotateQuote();
     setInterval(rotateQuote, 5000);
 
+    // countdown + dynamic daily goal
     const examDate = new Date("2025-07-28T13:30:00");
+    const totalLectures = 105;
+
     function updateCountdown() {
-      const now = new Date(), ms = examDate - now;
-      const days = Math.floor(ms / (1000*60*60*24));
-      const hours = Math.floor(ms / (1000*60*60)) % 24;
-      const minutes = Math.floor(ms / (1000*60)) % 60;
+      const now = new Date();
+      const ms = examDate - now;
+      const days = Math.floor(ms / 86400000);
+      const hours = Math.floor(ms / 3600000) % 24;
+      const minutes = Math.floor(ms / 60000) % 60;
       const seconds = Math.floor(ms / 1000) % 60;
 
       document.getElementById("dayCounter").textContent =
@@ -239,50 +245,67 @@
       document.getElementById("timeCounter").textContent =
         `⏳ Time remaining: ${hours}h ${minutes}m ${seconds}s`;
 
-      const totalLectures = 105;
-      const totalDays = Math.ceil(ms / (1000*60*60*24));
-      const goalPerDay = Math.ceil(totalLectures / totalDays);
-      document.getElementById("dailyGoal").textContent =
-        `🎯 Daily Goal: ${goalPerDay} lecture${goalPerDay>1?'s':''} today`;
+      updateDailyGoal(days);
     }
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
 
-    const totalLectures = 105;
+    function updateDailyGoal(remainingDays) {
+      // count watched lectures
+      const watched = document.querySelectorAll(
+        "#lectures input:checked"
+      ).length;
+      const remainingLecs = totalLectures - watched;
+      // avoid div/0 if exam is today
+      const daysLeft = remainingDays > 0 ? remainingDays : 1;
+      const goal = Math.ceil(remainingLecs / daysLeft);
+
+      document.getElementById("dailyGoal").textContent =
+        `🎯 Daily Goal: Watch at least ${goal} lecture${goal > 1 ? 's' : ''} today`;
+    }
+
+    function updateProgress() {
+      const watched = document.querySelectorAll(
+        "#lectures input:checked"
+      ).length;
+      const pct = Math.floor((watched / totalLectures) * 100);
+      const bar = document.getElementById("progress-bar");
+      bar.style.width = pct + "%";
+      bar.textContent = pct + "%";
+
+      // recalc goal whenever user checks/un-checks
+      const dayText = document.getElementById("dayCounter").textContent;
+      const days = parseInt(dayText.match(/(\d+)/)[1], 10);
+      updateDailyGoal(days);
+    }
+
+    // build lecture checkboxes
     const lectureDiv = document.getElementById("lectures");
-    firebase.database().ref(`users/${userId}/lectures`).once("value")
+    firebase.database().ref(`users/${userId}/lectures`)
+      .once("value")
       .then(snap => {
         const data = snap.val() || {};
         for (let i = 1; i <= totalLectures; i++) {
           const id = `lecture${i}`;
           const checked = data[id] ? "checked" : "";
-          lectureDiv.innerHTML +=
-            `<label><input type="checkbox" id="${id}" ${checked}>Lecture ${i}</label>`;
+          lectureDiv.innerHTML += `
+            <label>
+              <input type="checkbox" id="${id}" ${checked}>
+              Lecture ${i}
+            </label>`;
         }
-        attachListeners();
+        document.querySelectorAll("#lectures input")
+          .forEach(cb => cb.addEventListener("change", e => {
+            db.ref(`users/${userId}/lectures/${e.target.id}`)
+              .set(e.target.checked);
+            updateProgress();
+          }));
         updateProgress();
       });
 
-    function attachListeners() {
-      document.querySelectorAll("#lectures input").forEach(cb => {
-        cb.addEventListener("change", () => {
-          firebase.database()
-            .ref(`users/${userId}/lectures/${cb.id}`)
-            .set(cb.checked);
-          updateProgress();
-        });
-      });
-    }
+    // kick things off
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
 
-    function updateProgress() {
-      const boxes = [...document.querySelectorAll("#lectures input")];
-      const done = boxes.filter(i => i.checked).length;
-      const pct = Math.floor(done / totalLectures * 100);
-      const bar = document.getElementById("progress-bar");
-      bar.style.width = pct + "%";
-      bar.textContent = pct + "%";
-    }
-
+    // dark mode & notifications & SW (unchanged)
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
       localStorage.setItem("darkMode",
@@ -291,7 +314,6 @@
     if (localStorage.getItem("darkMode") === "true") {
       document.body.classList.add("dark-mode");
     }
-
     function askNotificationPermission() {
       if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
@@ -303,12 +325,10 @@
         new Notification("📌 Time to study! Don't forget your daily goals.");
       }
     }
-    setInterval(notifyMe, 60 * 60 * 1000);
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log("Service Worker registered", reg))
-        .catch(err => console.log("Service Worker registration failed", err));
+    setInterval(notifyMe, 3600000);
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js")
+        .catch(console.error);
     }
   </script>
 </body>
