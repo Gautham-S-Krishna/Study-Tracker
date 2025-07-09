@@ -10,8 +10,119 @@
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <style>
-    /* Styles remain unchanged */
+   <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      color: #222;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+    }
+    .quote-rotator, .day-counter, .time-counter, .daily-goal {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 1.05rem;
+    }
+    .section {
+      margin-top: 30px;
+    }
+    h2 {
+      font-size: 1.5rem;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 6px;
+      margin-bottom: 15px;
+    }
+    #lectures {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      padding: 10px 0;
+    }
+    #lectures label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #f0f0f0;
+      transition: 0.2s;
+    }
+    #lectures label:hover {
+      background: #e0e0ff;
+      cursor: pointer;
+    }
+    input[type="checkbox"] {
+      transform: scale(1.2);
+    }
+    .progress {
+      width: 100%;
+      background-color: #eee;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 10px 0 20px;
+      height: 22px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #4caf50, #81c784);
+      width: 0%;
+      color: #fff;
+      text-align: center;
+      line-height: 22px;
+      font-weight: bold;
+    }
+    .dark-toggle {
+      float: right;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      border: none;
+      background: #222;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .section label {
+      display: block;
+      padding: 8px 0;
+    }
+    .dark-mode {
+      background: #1e1e1e;
+      color: #eee;
+    }
+    .dark-mode .container {
+      background: #2c2c2c;
+    }
+    .dark-mode .progress {
+      background: #444;
+    }
+    .dark-mode .progress-bar {
+      background: linear-gradient(90deg, #26a69a, #80cbc4);
+    }
+    .dark-mode input[type="checkbox"]:checked + label {
+      background: #444;
+    }
+    .dark-mode #lectures label {
+      background: #333;
+      border-color: #555;
+    }
+    .dark-mode #lectures label:hover {
+      background: #444;
+    }
   </style>
 </head>
 <body>
